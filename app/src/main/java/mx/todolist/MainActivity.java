@@ -186,5 +186,4 @@ public class MainActivity extends AppCompatActivity {
         }
         totalTextView.setText("Total: " + total);
     }
-
 }
