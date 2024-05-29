@@ -2,11 +2,13 @@ package mx.todolist;
 
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
@@ -40,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         switchActivate = findViewById(R.id.switch_activate);
         totalTextView = findViewById(R.id.totalTextView);
 
-        //Agregar tarea
+        // Agregar Tarea con Botón
         buttonAddTask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,7 +54,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //Activacion de switch
+        // Agregar Tarea con Enter
+        editTextTask.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE ||
+                        (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                    String taskText = editTextTask.getText().toString().trim();
+                    if (!taskText.isEmpty()) {
+                        addTask(taskText);
+                        editTextTask.setText("");
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        // Función para controlar eventos del Switch
         switchActivate.setOnCheckedChangeListener((buttonView, isChecked) -> {
             comprasActivado = isChecked;
             totalTextView.setVisibility(comprasActivado ? View.VISIBLE : View.GONE);
@@ -63,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // Función para Crear las Tareas
     private void addTask(String taskText) {
         RelativeLayout taskLayout = new RelativeLayout(this);
         taskLayout.setPadding(8, 8, 8, 8);
@@ -80,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         editTextParams.addRule(RelativeLayout.CENTER_VERTICAL);
         taskEditText.setLayoutParams(editTextParams);
 
-        //Boton para editar Tarea
+        // Botón para Editar Tarea
         ImageButton editButton = new ImageButton(this);
         editButton.setImageResource(R.drawable.edit_button);
         editButton.setBackground(null);
@@ -99,10 +119,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //EditText de precio
+        // EditText de precio
         final EditText precioEditText = new EditText(this);
 
-        //Boton para eliminar Tarea
+        // Botón para Eliminar Tarea
         ImageButton deleteButton = new ImageButton(this);
         deleteButton.setImageResource(R.drawable.delete_button);
         deleteButton.setBackground(null);
@@ -121,23 +141,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         precioEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        precioEditText.setHint("Precio");
+        precioEditText.setHint("Precio:");
         precioEditText.setVisibility(comprasActivado ? View.VISIBLE : View.GONE);
+        // Coloca el contenido del EditText en el Centro
+        precioEditText.setGravity(Gravity.CENTER);
         precioEditText.setId(View.generateViewId());
         RelativeLayout.LayoutParams priceEditTextParams = new RelativeLayout.LayoutParams(
                 200,
                 RelativeLayout.LayoutParams.WRAP_CONTENT
         );
-//        priceEditTextParams.addRule(taskEditText.getId());
         priceEditTextParams.addRule(RelativeLayout.LEFT_OF,deleteButton.getId());
         priceEditTextParams.addRule(RelativeLayout.CENTER_VERTICAL);
         precioEditText.setLayoutParams(priceEditTextParams);
 
+        // Actualiza el Precio al perder el Foco de precioEditText
         precioEditText.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
                 calcularTotal();
+            }
+        });
+
+        // Actualiza el Precio al dar Enter en precioEditText
+        precioEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE ||
+                        (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                    calcularTotal();
+                }
+                return false;
             }
         });
 
@@ -150,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
         priceEditTexts.add(precioEditText);
         taskLayouts.add(taskLayout);
     }
+
+    // Función para Editar Tareas
     private void editTask(final TextView taskTextView) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Edit Task");
@@ -165,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
+    // Función para Eliminar Tareas
     private void deleteTask(final RelativeLayout  taskLayout, final EditText priceEditText) {
         taskContainer.removeView(taskLayout);
         priceEditTexts.remove(priceEditText);
@@ -172,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
         calcularTotal();
     }
 
+    // Función para calcular el Total
     private void calcularTotal() {
         double total = 0.0;
         for (EditText priceEditText : priceEditTexts) {
@@ -184,6 +221,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        totalTextView.setText("Total: " + total);
+        totalTextView.setText("Total: $ " + total);
     }
 }
