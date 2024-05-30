@@ -1,5 +1,6 @@
 package mx.todolist;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -13,11 +14,13 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean comprasActivado = false;
     private List<EditText> priceEditTexts = new ArrayList<>();
     private List<RelativeLayout> taskLayouts = new ArrayList<>();
+
+    private Button btnSave;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
         taskContainer = findViewById(R.id.taskContainer);
         switchActivate = findViewById(R.id.switch_activate);
         totalTextView = findViewById(R.id.totalTextView);
+        btnSave = findViewById(R.id.btnSave);
+
+        //carga los datos de la lista guardada
+        cargarLista();
 
         // Agregar Tarea con Botón
         buttonAddTask.setOnClickListener(new View.OnClickListener() {
@@ -48,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String taskText = editTextTask.getText().toString().trim();
                 if (!taskText.isEmpty()) {
-                    addTask(taskText);
+                    addTask(taskText,null);
                     editTextTask.setText("");
                 }
             }
@@ -62,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                         (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN)) {
                     String taskText = editTextTask.getText().toString().trim();
                     if (!taskText.isEmpty()) {
-                        addTask(taskText);
+                        addTask(taskText, null);
                         editTextTask.setText("");
                     }
                     return true;
@@ -80,10 +89,15 @@ public class MainActivity extends AppCompatActivity {
             }
             calcularTotal();
         });
+
+        btnSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {guardarLista();}
+        });
     }
 
     // Función para Crear las Tareas
-    private void addTask(String taskText) {
+    private void addTask(String taskText, String priceText) {
         RelativeLayout taskLayout = new RelativeLayout(this);
         taskLayout.setPadding(8, 8, 8, 8);
 
@@ -174,6 +188,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Establecer el precio recuperado
+        if (priceText != null) {
+            precioEditText.setText(priceText);
+        }
+
         taskLayout.addView(taskEditText);
         taskLayout.addView(precioEditText);
         taskLayout.addView(editButton);
@@ -222,5 +241,55 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         totalTextView.setText("Total: $ " + total);
+    }
+
+    private void guardarLista(){
+        SharedPreferences sharedPreferences = getSharedPreferences("ToDoList", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        try {
+            // Guardar el título de la lista
+            EditText titleList = findViewById(R.id.title);
+            String titleL = titleList.getText().toString();
+            editor.putString("list_title", titleL);
+
+            // Guardar el número de tareas
+            editor.putInt("task_count", taskLayouts.size());
+
+            // Guardar cada tarea y su precio
+            for (int i = 0; i < taskLayouts.size(); i++) {
+                RelativeLayout taskLayout = taskLayouts.get(i);
+                TextView taskTextView = (TextView) taskLayout.getChildAt(0);
+                EditText priceEditText = (EditText) taskLayout.getChildAt(1);
+
+                String taskText = taskTextView.getText().toString();
+                String priceText = priceEditText.getText().toString();
+
+                editor.putString("task_" + i, taskText);
+                editor.putString("price_" + i, priceText);
+            }
+            editor.apply();
+            Toast.makeText(this, "Datos guardados correctamente", Toast.LENGTH_SHORT).show();
+        }catch (Exception e){
+            Toast.makeText(this, "Error al guardar los datos", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void cargarLista() {
+        SharedPreferences sharedPreferences = getSharedPreferences("ToDoList", MODE_PRIVATE);
+
+        // Recuperar el título de la lista
+        String titleList = sharedPreferences.getString("list_title", "");
+        EditText titleEditText = findViewById(R.id.title);
+        titleEditText.setText(titleList);
+
+        int taskCount = sharedPreferences.getInt("task_count", 0);
+
+        for (int i = 0; i < taskCount; i++) {
+            String taskText = sharedPreferences.getString("task_" + i, "");
+            String priceText = sharedPreferences.getString("price_" + i, "");
+
+            addTask(taskText, priceText);
+        }
     }
 }
