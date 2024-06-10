@@ -83,7 +83,7 @@
         <!--list layout-->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="660dp"
+            android:layout_height="567dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
@@ -101,8 +101,7 @@
                     android:id="@+id/taskContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                </LinearLayout>
+                    android:orientation="vertical"></LinearLayout>
             </ScrollView>
 
         </LinearLayout>
@@ -147,7 +146,7 @@
         <!--boton para guardar datos-->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="50dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
@@ -162,7 +161,7 @@
                 android:layout_width="167dp"
                 android:layout_height="match_parent"
                 android:text="Guardar Lista"
-                android:textSize="18sp" />
+                android:textSize="19sp" />
         </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
